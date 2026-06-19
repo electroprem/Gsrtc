@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Live Bus Schedule</title>
+
+<style>
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+
+body{
+background:#f5f5f7;
+padding:20px;
+color:#1d1d1f;
+}
+
+.header{
+margin-bottom:20px;
+}
+
+.header h1{
+font-size:32px;
+font-weight:700;
+}
+
+.time{
+color:#666;
+margin-top:8px;
+}
+
+.next-card{
+background:linear-gradient(135deg,#34c759,#30d158);
+color:white;
+padding:25px;
+border-radius:30px;
+box-shadow:0 15px 35px rgba(0,0,0,.15);
+margin-bottom:25px;
+}
+
+.next-card .title{
+font-size:15px;
+opacity:.9;
+}
+
+.next-card .busTime{
+font-size:42px;
+font-weight:700;
+margin-top:10px;
+}
+
+.next-card .countdown{
+margin-top:10px;
+font-size:18px;
+}
+
+.section{
+font-size:20px;
+font-weight:700;
+margin-bottom:15px;
+}
+
+.card{
+background:rgba(255,255,255,.75);
+backdrop-filter:blur(20px);
+padding:20px;
+border-radius:25px;
+margin-bottom:15px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+.left h3{
+font-size:24px;
+}
+
+.left p{
+color:#666;
+margin-top:5px;
+}
+
+.status{
+padding:8px 16px;
+border-radius:20px;
+font-size:14px;
+font-weight:600;
+}
+
+.available{
+background:#34c759;
+color:white;
+}
+
+.departed{
+background:#ff3b30;
+color:white;
+}
+
+@media (prefers-color-scheme: dark){
+
+body{
+background:#000;
+color:white;
+}
+
+.card{
+background:#1c1c1e;
+}
+
+.left p{
+color:#aaa;
+}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+<h1>Ahmedabad → Rajkot</h1>
+<div class="time" id="currentTime"></div>
+</div>
+
+<div class="next-card" id="nextBusCard"></div>
+
+<div class="section">
+Upcoming Buses
+</div>
+
+<div id="busList"></div>
+
+<script>
+
+const busData = [
+{time:"06:30",type:"Express"},
+{time:"08:15",type:"Sleeper"},
+{time:"10:00",type:"Express"},
+{time:"11:30",type:"Volvo AC"},
+{time:"13:15",type:"Express"},
+{time:"15:00",type:"Sleeper"},
+{time:"17:30",type:"Volvo AC"},
+{time:"19:45",type:"Express"},
+{time:"22:00",type:"Sleeper"}
+];
+
+function updateBus(){
+
+let now=new Date();
+
+document.getElementById("currentTime").innerHTML=
+now.toLocaleDateString()+" • "+
+now.toLocaleTimeString([],{
+hour:'2-digit',
+minute:'2-digit'
+});
+
+let currentMinutes=now.getHours()*60+now.getMinutes();
+
+let nextBus=busData.find(bus=>{
+
+let [h,m]=bus.time.split(":");
+let total=(+h*60)+(+m);
+
+return total>=currentMinutes;
+
+});
+
+if(nextBus){
+
+let [h,m]=nextBus.time.split(":");
+let total=(+h*60)+(+m);
+
+let diff=total-currentMinutes;
+
+document.getElementById("nextBusCard").innerHTML=
+`
+<div class="title">🚌 NEXT AVAILABLE BUS</div>
+<div class="busTime">${nextBus.time}</div>
+<div>${nextBus.type}</div>
+<div class="countdown">
+Departs in ${diff} min
+</div>
+`;
+}
+else{
+
+document.getElementById("nextBusCard").innerHTML=
+`
+<div class="busTime">No More Buses Today</div>
+`;
+}
+
+let html="";
+
+busData.forEach(bus=>{
+
+let [h,m]=bus.time.split(":");
+let total=(+h*60)+(+m);
+
+let status=total>=currentMinutes?"Available":"Departed";
+let cls=total>=currentMinutes?"available":"departed";
+
+html+=`
+<div class="card">
+
+<div class="left">
+<h3>${bus.time}</h3>
+<p>${bus.type}</p>
+</div>
+
+<div class="status ${cls}">
+${status}
+</div>
+
+</div>
+`;
+
+});
+
+document.getElementById("busList").innerHTML=html;
+
+}
+
+updateBus();
+
+setInterval(updateBus,60000);
+
+</script>
+
+</body>
+</html>
